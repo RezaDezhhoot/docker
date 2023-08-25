@@ -1,0 +1,100 @@
+version: '3'
+services:
+  nginx:
+    build:
+      context: ./dockerfiles
+      dockerfile: ./nginx/Dockerfile
+    image: app_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./app:/home/public_html
+    depends_on:
+      - mysql
+      - app
+    networks:
+      - app_net
+
+  mysql:
+    image: mariadb:10.6
+    container_name: app_mysql
+    restart: on-failure
+    tty: true
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: root
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: secret
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    networks:
+      - app_net
+
+  app:
+    build:
+      context: ./dockerfiles
+      dockerfile: ./php/Dockerfile
+    image: app_image
+    volumes:
+      - ./app:/home/public_html
+      - ./dockerfiles/php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+    environment:
+      PHP_IDE_CONFIG: 'serverName=app.test'
+    networks:
+      - app_net
+
+  composer:
+    build:
+      context: ./dockerfiles
+      dockerfile: composer/Dockerfile
+    container_name: composer
+    volumes:
+      - ./app:/app
+    working_dir: /app
+    depends_on:
+      - app
+    user: composer
+    entrypoint: [ 'composer', '--ignore-platform-reqs' ]
+    networks:
+      - app_net
+
+  npm:
+    build:
+      context: ./dockerfiles
+      dockerfile: ./npm/Dockerfile
+    volumes:
+      - ./app:/app
+    working_dir: /app
+    entrypoint: [ 'npm' ]
+    networks:
+      - app_net
+
+  artisan:
+    image: app_image
+    volumes:
+      - ./app:/home/public_html
+    depends_on:
+      - mysql
+      - app
+    working_dir: /home/public_html
+    entrypoint: [ 'php', '/home/public_html/artisan' ]
+    networks:
+      - app_net
+
+  git:
+    image: alpine/git
+    container_name: app_git
+    volumes:
+      - $HOME/.ssh:/root/.ssh
+      - ./:/git
+    working_dir: /git
+    networks:
+      - app_net
+
+networks:
+  app_net:
+    driver: bridge
