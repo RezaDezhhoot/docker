@@ -15,15 +15,15 @@ if docker info -ne 0 >/dev/null 2>&1; then
 fi
 
 if [ -z "$(ls -A ./app)" ]; then 
-  docker run -it --rm -v "$PWD"/:/app -w /app composer:2 create-project --prefer-dist laravel/laravel ./api
+  docker run -it --rm -v "$PWD"/:/app -w /app composer:2 create-project --prefer-dist laravel/laravel ./app
 fi
 
 
-chmod -R 777 ./api/bootstrap/cache ./api/storage
+chmod -R 777 ./app/bootstrap/cache ./app/storage
 
-sed -i -e "s|APP_URL=http://localhost|APP_URL=http://localhost:80|" ./api/.env;
-sed -i -e "s/DB_HOST=127.0.0.1/DB_HOST=mysql/" ./api/.env;
-sed -i -e "s/DB_PASSWORD=/DB_PASSWORD=secret/" ./api/.env;
+sed -i -e "s|APP_URL=http://localhost|APP_URL=http://localhost:80|" ./app/.env;
+sed -i -e "s/DB_HOST=127.0.0.1/DB_HOST=mysql/" ./app/.env;
+sed -i -e "s/DB_HOST=127.0.0.1/DB_HOST=mysql/" ./app/.env;
 
 echo ""
 

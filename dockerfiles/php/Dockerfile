@@ -7,9 +7,9 @@ RUN apk add --no-cache libc6-compat git bash zip curl-dev \
     && pecl install xdebug \
     && docker-php-ext-install bcmath \
     && docker-php-ext-install pdo_mysql \
-    && addgroup -g 1000 --system api \
-    && adduser -G api --system -D -s /bin/sh -u 1000 api \
-    && sed -i "s/user = www-data/user = api/g; s/group = www-data/group = api/g" /usr/local/etc/php-fpm.d/www.conf \
+    && addgroup -g 1000 --system app \
+    && adduser -G app --system -D -s /bin/sh -u 1000 app \
+    && sed -i "s/user = www-data/user = api/g; s/group = www-data/group = app/g" /usr/local/etc/php-fpm.d/www.conf \
     && echo "php_admin_flag[log_errors] = on" >> /usr/local/etc/php-fpm.d/www.conf
 
 RUN docker-php-ext-configure gd \
@@ -19,6 +19,6 @@ RUN docker-php-ext-configure gd \
     && docker-php-ext-install -j$(nproc) gd
 
 WORKDIR /home/public_html
-USER api
+USER app
 
 CMD ["php-fpm", "-y", "/usr/local/etc/php-fpm.conf", "-R"]
